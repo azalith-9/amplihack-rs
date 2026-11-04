@@ -18,6 +18,8 @@ pub enum LauncherKind {
     Copilot,
     Codex,
     Amplifier,
+    Hermes,
+    Zcode,
     Unknown,
 }
 
@@ -28,6 +30,8 @@ impl LauncherKind {
             Self::Copilot => "copilot",
             Self::Codex => "codex",
             Self::Amplifier => "amplifier",
+            Self::Hermes => "hermes",
+            Self::Zcode => "zcode",
             Self::Unknown => "unknown",
         }
     }

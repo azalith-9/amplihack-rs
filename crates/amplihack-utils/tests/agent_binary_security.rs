@@ -67,6 +67,10 @@ fn s1_allowlist_is_case_insensitive_exact_match() {
         "copilot",
         "codex",
         "amplifier",
+        "hermes",
+        "zcode",
+        "Hermes",
+        "ZCODE",
     ] {
         assert!(validate_binary_name(good).is_some(), "{good} must be valid");
     }

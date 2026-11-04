@@ -58,8 +58,8 @@ If a source produces a value that fails validation (allowlist, length, character
 
 Both WARNs are hidden at the default tracing filter, so `amplihack agent-binary` and `amplihack recipe run` say it on stderr:
 
-- A rejected `AMPLIHACK_AGENT_BINARY` is named whichever layer answered in its place, a session marker included: `AMPLIHACK_AGENT_BINARY is set but is not one of amplifier, claude, codex or copilot`, then what answered, e.g. `; COPILOT_CLI, the copilot session marker in this environment, answered`. The user named a CLI and got a different one, so the line is needed even when a marker is the answer.
-- A launcher context that failed is named when the answer was inferred: `ignored <file>: it does not name amplifier, claude, codex or copilot as its launcher. Fix or delete it.` When a session marker or a valid `AMPLIHACK_AGENT_BINARY` answers, the file decided nothing and no notice names it; only its WARN is still logged.
+- A rejected `AMPLIHACK_AGENT_BINARY` is named whichever layer answered in its place, a session marker included: `AMPLIHACK_AGENT_BINARY is set but is not one of amplifier, claude, codex, copilot, hermes or zcode`, then what answered, e.g. `; COPILOT_CLI, the copilot session marker in this environment, answered`. The user named a CLI and got a different one, so the line is needed even when a marker is the answer.
+- A launcher context that failed is named when the answer was inferred: `ignored <file>: it does not name amplifier, claude, codex, copilot, hermes or zcode as its launcher. Fix or delete it.` When a session marker or a valid `AMPLIHACK_AGENT_BINARY` answers, the file decided nothing and no notice names it; only its WARN is still logged.
 
 ### Resolving once for a whole recipe run
 
@@ -117,7 +117,7 @@ observed, but the user still asked for a CLI and got another one, so the line
 names the marker:
 
 ```text
-amplihack: agent steps will run under 'copilot' (AMPLIHACK_AGENT_BINARY is set but is not one of amplifier, claude, codex or copilot; COPILOT_CLI, the copilot session marker in this environment, answered). Set AMPLIHACK_AGENT_BINARY to one of amplifier, claude, codex or copilot to choose an agent CLI.
+amplihack: agent steps will run under 'copilot' (AMPLIHACK_AGENT_BINARY is set but is not one of amplifier, claude, codex, copilot, hermes or zcode; COPILOT_CLI, the copilot session marker in this environment, answered). Set AMPLIHACK_AGENT_BINARY to one of amplifier, claude, codex, copilot, hermes or zcode to choose an agent CLI.
 ```
 
 The steps are handed the marker's answer as a valid value, tagged

@@ -22,6 +22,8 @@ fn remove_claude_slash_commands() -> Result<(CommandRemoval, PathBuf)> {
 
 pub fn run_uninstall() -> Result<()> {
     super::codex_plugin::uninstall()?;
+    super::hermes_plugin::uninstall()?;
+    super::zcode_plugin::uninstall()?;
     let claude_dir = staging_claude_dir()?;
     let manifest_path = manifest_path()?;
     let manifest = read_manifest(&manifest_path)?;

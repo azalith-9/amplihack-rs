@@ -134,12 +134,12 @@ impl Reporter {
 
 /// Why a set `AMPLIHACK_AGENT_BINARY` was not used. It never quotes the value.
 const REJECTED: &str = "AMPLIHACK_AGENT_BINARY is set but is not one of amplifier, claude, \
-                        codex or copilot";
+                        codex, copilot, hermes or zcode";
 
 /// What to set to choose a CLI after a rejected value: the variable and the
 /// names it accepts.
 const SET_TO_AN_ALLOWED_NAME: &str =
-    "AMPLIHACK_AGENT_BINARY to one of amplifier, claude, codex or copilot";
+    "AMPLIHACK_AGENT_BINARY to one of amplifier, claude, codex, copilot, hermes or zcode";
 
 /// Print [`agent_binary_notice`] to stderr when there is one, and return
 /// [`answer_from_tmux_server_marker`] for the same resolution.
@@ -605,9 +605,9 @@ mod tests {
                 notice,
                 format!(
                     "amplihack: {lead} 'copilot' (AMPLIHACK_AGENT_BINARY is set but is not one \
-                     of amplifier, claude, codex or copilot; COPILOT_CLI, the copilot session \
+                     of amplifier, claude, codex, copilot, hermes or zcode; COPILOT_CLI, the copilot session \
                      marker in this environment, answered). Set AMPLIHACK_AGENT_BINARY to one \
-                     of amplifier, claude, codex or copilot to choose an agent CLI."
+                     of amplifier, claude, codex, copilot, hermes or zcode to choose an agent CLI."
                 )
             );
             // Not the tmux line: nothing says this marker is the server's.
@@ -688,13 +688,13 @@ mod tests {
                 assert_eq!(
                     notice,
                     "amplihack: agent steps will run under 'copilot' (AMPLIHACK_AGENT_BINARY is \
-                     set but is not one of amplifier, claude, codex or copilot; COPILOT_CLI is \
+                     set but is not one of amplifier, claude, codex, copilot, hermes or zcode; COPILOT_CLI is \
                      set, but this tmux server's global environment holds the same value, so it \
                      may come from whatever started the server rather than from a copilot \
                      session). To hand a detached run the CLI you launch it from, prefix its \
                      command with $(amplihack agent-binary --shell -w <dir>), inside double \
                      quotes; to choose one, set AMPLIHACK_AGENT_BINARY to one of amplifier, \
-                     claude, codex or copilot."
+                     claude, codex, copilot, hermes or zcode."
                 );
             } else {
                 assert_eq!(
@@ -980,11 +980,11 @@ mod tests {
                 assert_eq!(
                     notice,
                     "amplihack: resolved the agent binary to 'claude' (AMPLIHACK_AGENT_BINARY \
-                     is set but is not one of amplifier, claude, codex or copilot; CLAUDECODE is \
+                     is set but is not one of amplifier, claude, codex, copilot, hermes or zcode; CLAUDECODE is \
                      set, but this tmux server's global environment holds the same value, so it \
                      may come from whatever started the server rather than from a claude \
-                     session). Set AMPLIHACK_AGENT_BINARY to one of amplifier, claude, codex or \
-                     copilot to choose an agent CLI."
+                     session). Set AMPLIHACK_AGENT_BINARY to one of amplifier, claude, codex, \
+                     copilot, hermes or zcode to choose an agent CLI."
                 );
             } else {
                 assert_eq!(
@@ -1059,7 +1059,9 @@ mod tests {
             .unwrap();
             assert!(!notice.contains("no AMPLIHACK_AGENT_BINARY"), "{notice}");
             assert!(
-                notice.contains("is set but is not one of amplifier, claude, codex or copilot"),
+                notice.contains(
+                    "is set but is not one of amplifier, claude, codex, copilot, hermes or zcode"
+                ),
                 "{notice}"
             );
         }

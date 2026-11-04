@@ -244,6 +244,72 @@ MODEL SELECTION (issues #1421, #1527)
         #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
         args: Vec<String>,
     },
+    /// Launch Hermes Agent (Nous Research `hermes` CLI)
+    Hermes {
+        /// Disable post-session reflection analysis.
+        #[arg(long = "no-reflection")]
+        no_reflection: bool,
+        /// Skip shared launcher staging/env updates for subprocess delegates.
+        #[arg(long = "subprocess-safe")]
+        subprocess_safe: bool,
+        /// Run amplihack in Docker container for isolated execution.
+        #[arg(long = "docker")]
+        docker: bool,
+        /// Append instructions to a running auto mode session and exit.
+        // Hermes has no documented append equivalent; like the other tools,
+        // this only works for auto-mode sessions amplihack itself launched.
+        #[arg(long = "append")]
+        append: Option<String>,
+        /// Run in autonomous agentic mode with iterative loop execution.
+        #[arg(long = "auto")]
+        auto: bool,
+        /// Max turns for auto mode.
+        #[arg(long = "max-turns", env = "AMPLIHACK_AUTO_MAX_TURNS", default_value_t = 10, value_parser = clap::value_parser!(u32).range(1..))]
+        max_turns: u32,
+        /// Enable interactive UI mode for auto mode.
+        #[arg(long = "ui")]
+        ui: bool,
+        /// Read the initial auto-mode prompt from a file (requires --auto).
+        #[arg(long = "prompt-file", value_name = "PATH", requires = "auto")]
+        prompt_file: Option<PathBuf>,
+        /// Extra args passed to hermes
+        #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
+        args: Vec<String>,
+    },
+    /// Launch ZCode (Z.ai `zcode` CLI)
+    Zcode {
+        /// Disable post-session reflection analysis.
+        #[arg(long = "no-reflection")]
+        no_reflection: bool,
+        /// Skip shared launcher staging/env updates for subprocess delegates.
+        #[arg(long = "subprocess-safe")]
+        subprocess_safe: bool,
+        /// Run amplihack in Docker container for isolated execution.
+        #[arg(long = "docker")]
+        docker: bool,
+        /// Append instructions to a running auto mode session and exit.
+        // ZCode has no documented append equivalent; like the other tools,
+        // this only works for auto-mode sessions amplihack itself launched.
+        #[arg(long = "append")]
+        append: Option<String>,
+        /// Run in autonomous agentic mode with iterative loop execution.
+        #[arg(long = "auto")]
+        auto: bool,
+        /// Max turns for auto mode.
+        #[arg(long = "max-turns", env = "AMPLIHACK_AUTO_MAX_TURNS", default_value_t = 10, value_parser = clap::value_parser!(u32).range(1..))]
+        max_turns: u32,
+        /// Enable interactive UI mode for auto mode.
+        #[arg(long = "ui")]
+        ui: bool,
+        /// Read the initial auto-mode prompt from a file (requires --auto).
+        #[arg(long = "prompt-file", value_name = "PATH", requires = "auto")]
+        prompt_file: Option<PathBuf>,
+        /// Extra args passed to zcode
+        /// NOTE: `--mode yolo` is never injected by amplihack. Unattended
+        /// bypass is the user's explicit choice via trailing args.
+        #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
+        args: Vec<String>,
+    },
     /// Plugin management
     Plugin {
         #[command(subcommand)]

@@ -110,9 +110,45 @@ fn prepare_selected_launcher(tool: &str) -> Result<()> {
             retire_stale_openai_codex_config();
             configure_codex()?;
         }
+        "hermes" => stage_hermes_launch_assets()?,
+        "zcode" => stage_zcode_launch_assets()?,
         _ => {}
     }
 
+    Ok(())
+}
+
+/// Stage what Hermes needs at launch: the amplihack skill set.
+///
+/// Issue #1526: launching is not installing — an older binary must not restage
+/// its older skills over a newer install's (the codex arm gets the same
+/// protection inside `ensure_framework_installed`).
+///
+/// Consent is the user's: never set Hermes `hooks_auto_accept` and never touch
+/// `~/.hermes/shell-hooks-allowlist.json` from here. Hook registration is
+/// gated on the translation bridge (HANDOFF.md stage 5), so this is
+/// launch-only compatibility, not full quality-gate coverage.
+fn stage_hermes_launch_assets() -> Result<()> {
+    if install::newer_install_stamp()?.is_none() {
+        install::hermes_plugin::ensure_assets_staged()?;
+    }
+    Ok(())
+}
+
+/// Stage what ZCode needs at launch: the amplihack block in
+/// `~/.zcode/AGENTS.md`.
+///
+/// Issue #1526: same downgrade refusal as the Hermes arm.
+///
+/// Trust is the user's: never run `zcode hooks trust` on their behalf — the
+/// trust model is the user's decision. Hook and `config.json` wiring is gated
+/// on HANDOFF.md stage 5 (runtime parity of the documented hook overlap is
+/// untested), so this is launch-only compatibility, not full quality-gate
+/// coverage.
+fn stage_zcode_launch_assets() -> Result<()> {
+    if install::newer_install_stamp()?.is_none() {
+        install::zcode_plugin::ensure_assets_staged()?;
+    }
     Ok(())
 }
 

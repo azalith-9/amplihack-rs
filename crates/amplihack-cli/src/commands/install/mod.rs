@@ -11,6 +11,7 @@ mod command_staging;
 mod copilot_plugin;
 mod directories;
 pub(crate) mod filesystem;
+pub mod hermes_plugin;
 mod hooks;
 pub(crate) mod interactive;
 mod manifest;
@@ -23,6 +24,7 @@ mod types;
 mod uninstall;
 mod verification;
 pub(crate) mod version_stamp;
+pub mod zcode_plugin;
 
 #[cfg(all(test, unix))]
 #[path = "tests/codex_alias_fixture.rs"]

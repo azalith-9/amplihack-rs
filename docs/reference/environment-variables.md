@@ -131,13 +131,13 @@ AMPLIHACK_AGENT_BINARY=claude amplihack recipe run smart-orchestrator -c task_de
 # session marker and no launcher context, that is the default, and the
 # notice on stderr says why:
 AMPLIHACK_AGENT_BINARY="../bin/evil" amplihack agent-binary
-# amplihack: resolved the agent binary to 'copilot' (AMPLIHACK_AGENT_BINARY is set but is not one of amplifier, claude, codex or copilot, and no agent session marker was found). Set AMPLIHACK_AGENT_BINARY to one of amplifier, claude, codex or copilot to choose an agent CLI.
+# amplihack: resolved the agent binary to 'copilot' (AMPLIHACK_AGENT_BINARY is set but is not one of amplifier, claude, codex, copilot, hermes or zcode, and no agent session marker was found). Set AMPLIHACK_AGENT_BINARY to one of amplifier, claude, codex, copilot, hermes or zcode to choose an agent CLI.
 # copilot (default)
 
 # The same value inside a Copilot CLI session: its session marker answers,
 # and the notice names the marker:
 COPILOT_CLI=1 AMPLIHACK_AGENT_BINARY="../bin/evil" amplihack agent-binary
-# amplihack: resolved the agent binary to 'copilot' (AMPLIHACK_AGENT_BINARY is set but is not one of amplifier, claude, codex or copilot; COPILOT_CLI, the copilot session marker in this environment, answered). Set AMPLIHACK_AGENT_BINARY to one of amplifier, claude, codex or copilot to choose an agent CLI.
+# amplihack: resolved the agent binary to 'copilot' (AMPLIHACK_AGENT_BINARY is set but is not one of amplifier, claude, codex, copilot, hermes or zcode; COPILOT_CLI, the copilot session marker in this environment, answered). Set AMPLIHACK_AGENT_BINARY to one of amplifier, claude, codex, copilot, hermes or zcode to choose an agent CLI.
 # copilot (session_marker)
 ```
 

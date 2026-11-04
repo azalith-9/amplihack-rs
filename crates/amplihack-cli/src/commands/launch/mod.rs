@@ -858,6 +858,8 @@ fn agent_binary_for_tool(tool: &str) -> Option<AgentBinary> {
         "copilot" => Some(AgentBinary::Copilot),
         "codex" => Some(AgentBinary::Codex),
         "amplifier" => Some(AgentBinary::Amplifier),
+        "hermes" => Some(AgentBinary::Hermes),
+        "zcode" => Some(AgentBinary::Zcode),
         _ => None,
     }
 }

@@ -111,6 +111,8 @@ pub fn ensure_assets_for_command(args: &[OsString], command: &crate::Commands) -
         crate::Commands::Copilot { .. } => "copilot",
         crate::Commands::Codex { .. } => "codex",
         crate::Commands::Amplifier { .. } => "amplifier",
+        crate::Commands::Hermes { .. } => "hermes",
+        crate::Commands::Zcode { .. } => "zcode",
         crate::Commands::RustyClawd { .. } => "rustyclawd",
         // Generic commands repair generic assets; direct install retains its
         // separate all-provider semantics and is in the startup skip list.

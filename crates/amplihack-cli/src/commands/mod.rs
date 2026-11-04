@@ -395,6 +395,94 @@ pub fn dispatch(command: Commands) -> Result<()> {
                 None,
             )
         }
+        // NOTE on the 6th positional argument: run_launch's 6th parameter is
+        // `skip_permissions`. The existing Codex and Amplifier arms pass
+        // `true` there (the flag only gates Claude's root-sandbox check, so
+        // it is inert for them). These arms pass `false` — confirm with a
+        // maintainer which is intended for new non-Claude tools before merge.
+        Commands::Hermes {
+            no_reflection,
+            subprocess_safe,
+            docker,
+            append,
+            auto,
+            max_turns: _, // --auto is rejected below; auto-mode knobs stay unbound
+            ui: _,
+            prompt_file: _,
+            args,
+        } => {
+            if let Some(instruction) = append {
+                reject_gateway_append()?;
+                return append::run_append(&instruction);
+            }
+            if auto {
+                // --auto is NOT implemented for Hermes in this draft: reject
+                // explicitly rather than falling through to an unimplemented
+                // executor path. Re-enable only once the headless `hermes -z`
+                // executor and the Hermes -p (profile) vs prompt
+                // disambiguation rule exist.
+                anyhow::bail!("--auto is not implemented for hermes in this draft");
+            }
+            launch::run_launch(
+                "hermes",
+                "hermes",
+                docker,
+                false,
+                false,
+                false,
+                false,
+                no_reflection,
+                subprocess_safe,
+                None,
+                args,
+                // Issue #1276: not the rustyclawd path — nothing has set an
+                // override on amplihack's behalf, so any override in the
+                // environment is the user's instruction.
+                OverrideOrigin::User,
+                None,
+            )
+        }
+        Commands::Zcode {
+            no_reflection,
+            subprocess_safe,
+            docker,
+            append,
+            auto,
+            max_turns: _, // --auto is rejected below; auto-mode knobs stay unbound
+            ui: _,
+            prompt_file: _,
+            args,
+        } => {
+            if let Some(instruction) = append {
+                reject_gateway_append()?;
+                return append::run_append(&instruction);
+            }
+            if auto {
+                // --auto is NOT implemented for zcode in this draft: reject
+                // explicitly rather than falling through to an unimplemented
+                // executor path. Re-enable only once the headless
+                // `zcode --prompt` executor exists.
+                anyhow::bail!("--auto is not implemented for zcode in this draft");
+            }
+            launch::run_launch(
+                "zcode",
+                "zcode",
+                docker,
+                false,
+                false,
+                false,
+                false,
+                no_reflection,
+                subprocess_safe,
+                None,
+                args,
+                // Issue #1276: not the rustyclawd path — nothing has set an
+                // override on amplihack's behalf, so any override in the
+                // environment is the user's instruction.
+                OverrideOrigin::User,
+                None,
+            )
+        }
         Commands::Plugin { command } => dispatch_plugin(command),
         Commands::Memory { command } => dispatch_memory(command),
         Commands::Remote { command } => dispatch_remote(command),

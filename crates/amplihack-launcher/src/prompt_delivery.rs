@@ -303,6 +303,25 @@ fn add_prompt_prefix_args(command: &mut Command, binary: AgentBinary, extra_args
             command.arg("run");
             command.args(extra_args);
         }
+        AgentBinary::Hermes => {
+            // Verified (v0.22.5): one-shot headless is `hermes -z "<prompt>"`;
+            // the prompt is appended right after `-z` by the delivery
+            // helper. There is no top-level `-p` flag (profiles are the
+            // `hermes profile` subcommand). Stdin delivery (`hermes chat
+            // --oneshot -q -`) is a different command shape and stays
+            // unimplemented.
+            command.args(extra_args);
+            command.arg("-z");
+        }
+        AgentBinary::Zcode => {
+            // Verified (CLI 0.17.0): headless is `zcode --prompt "<prompt>"`;
+            // the prompt is appended right after `--prompt` by the delivery
+            // helper. `--mode` defaults to yolo for --prompt runs —
+            // amplihack neither injects nor overrides it; a stricter mode
+            // is the user's explicit extra arg.
+            command.args(extra_args);
+            command.arg("--prompt");
+        }
     }
 }
 
@@ -373,7 +392,12 @@ mod root_sandbox_tests {
 
     #[test]
     fn other_binaries_are_never_probed() {
-        for binary in [AgentBinary::Copilot, AgentBinary::Codex] {
+        for binary in [
+            AgentBinary::Copilot,
+            AgentBinary::Codex,
+            AgentBinary::Hermes,
+            AgentBinary::Zcode,
+        ] {
             let delivered = build_tool_command_with_root_sandbox(
                 binary,
                 Path::new("."),
@@ -404,6 +428,8 @@ mod launched_session_tests {
             (AgentBinary::Claude, "claude"),
             (AgentBinary::Copilot, "copilot"),
             (AgentBinary::Codex, "codex"),
+            (AgentBinary::Hermes, "hermes"),
+            (AgentBinary::Zcode, "zcode"),
         ] {
             let delivered = build_tool_command_with_root_sandbox(
                 binary,
@@ -429,5 +455,137 @@ mod launched_session_tests {
                 assert_eq!(removed, implies != tool, "{tool}: {marker}");
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod hermes_zcode_argv_tests {
+    //! Exact argv contracts for the Hermes and ZCode headless builders:
+    //! `hermes [extra_args] -z "<prompt>"` and
+    //! `zcode [extra_args] --prompt "<prompt>"`. The prompt arrives as ONE
+    //! argv element, including prompts with spaces and leading hyphens, and
+    //! nothing goes to stdin (both FlagSets are argv-only).
+
+    use super::*;
+
+    /// [`build_tool_command_with_root_sandbox`] with argv delivery requested
+    /// explicitly, so the test does not depend on the process environment.
+    fn build_argv(binary: AgentBinary, extra_args: &[String], prompt: &str) -> DeliveredCommand {
+        build_tool_command_with_root_sandbox(
+            binary,
+            Path::new("."),
+            extra_args,
+            prompt,
+            PromptDelivery::Argv,
+            || root_sandbox::SkipPermissionsEnv::NotRoot,
+        )
+        .unwrap()
+    }
+
+    fn argv(delivered: &DeliveredCommand) -> Vec<String> {
+        std::iter::once(delivered.command.get_program())
+            .chain(delivered.command.get_args())
+            .map(|a| a.to_string_lossy().into_owned())
+            .collect()
+    }
+
+    #[test]
+    fn hermes_argv_is_extra_args_then_z_then_prompt() {
+        let prompt = "fix the failing tests in the launcher crate";
+        let delivered = build_argv(
+            AgentBinary::Hermes,
+            &["--verbose".to_string(), "--no-banner".to_string()],
+            prompt,
+        );
+        assert_eq!(
+            argv(&delivered),
+            vec!["hermes", "--verbose", "--no-banner", "-z", prompt],
+        );
+        assert_eq!(delivered.selected_mode, DeliveryMode::Argv);
+        assert!(delivered.stdin_payload.is_none(), "argv-only draft");
+    }
+
+    #[test]
+    fn hermes_prompt_with_spaces_and_leading_hyphen_is_one_argv_element() {
+        let prompt = "--not-a-flag prompt with spaces";
+        let delivered = build_argv(AgentBinary::Hermes, &[], prompt);
+        let args = argv(&delivered);
+        assert_eq!(args, vec!["hermes", "-z", prompt], "{args:?}");
+        // Exactly one element past `-z`, and it is the whole prompt.
+        assert_eq!(args.last().map(String::as_str), Some(prompt));
+        assert_eq!(
+            args.iter().filter(|a| *a == prompt).count(),
+            1,
+            "the prompt must not be split across argv elements"
+        );
+    }
+
+    #[test]
+    fn zcode_argv_is_extra_args_then_prompt_flag_then_prompt() {
+        let prompt = "summarise the session tree";
+        let delivered = build_argv(
+            AgentBinary::Zcode,
+            &["--output-format".to_string(), "stream-json".to_string()],
+            prompt,
+        );
+        assert_eq!(
+            argv(&delivered),
+            vec![
+                "zcode",
+                "--output-format",
+                "stream-json",
+                "--prompt",
+                prompt
+            ],
+        );
+        assert_eq!(delivered.selected_mode, DeliveryMode::Argv);
+        assert!(delivered.stdin_payload.is_none(), "argv-only draft");
+    }
+
+    #[test]
+    fn zcode_prompt_with_spaces_and_leading_hyphen_is_one_argv_element() {
+        let prompt = "--mode yolo must not be injected; this prompt is literal";
+        let delivered = build_argv(AgentBinary::Zcode, &[], prompt);
+        let args = argv(&delivered);
+        assert_eq!(args, vec!["zcode", "--prompt", prompt], "{args:?}");
+        assert_eq!(args.last().map(String::as_str), Some(prompt));
+        assert_eq!(
+            args.iter().filter(|a| *a == prompt).count(),
+            1,
+            "the prompt must not be split across argv elements"
+        );
+    }
+
+    /// Neither builder injects a bypass flag: both CLIs have one (zcode
+    /// `--mode yolo`, hermes `--yolo`) and amplihack never emits either.
+    #[test]
+    fn no_bypass_flag_is_ever_injected() {
+        for binary in [AgentBinary::Hermes, AgentBinary::Zcode] {
+            let delivered = build_argv(binary, &[], "prompt");
+            let args = argv(&delivered);
+            assert!(
+                !args.iter().any(|a| a == "--mode" || a == "yolo"),
+                "{binary}: amplihack must not inject --mode yolo: {args:?}"
+            );
+            assert!(
+                !args
+                    .iter()
+                    .any(|a| a == "--dangerously-skip-permissions" || a == "--yolo"),
+                "{binary}: no bypass flag may be injected: {args:?}"
+            );
+        }
+    }
+
+    /// amplihack never emits `-p` for Hermes: the top-level CLI has no `-p`
+    /// flag (v0.22.5 — profiles are a subcommand), and the generic prompt
+    /// convention must not leak into hermes argv.
+    #[test]
+    fn hermes_never_emits_the_profile_flag() {
+        let delivered = build_argv(AgentBinary::Hermes, &[], "prompt");
+        let args = argv(&delivered);
+        assert!(
+            !args.iter().any(|a| a == "-p"),
+            "hermes argv must not contain -p: {args:?}"
+        );
     }
 }

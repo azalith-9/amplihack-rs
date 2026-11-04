@@ -17,6 +17,7 @@ pub mod copilot_mcp;
 pub mod copilot_staging;
 pub mod flag_matrix;
 pub mod fork_manager;
+pub mod hermes;
 pub mod json_logger;
 pub mod launcher_core;
 pub mod memory_config;
@@ -30,15 +31,18 @@ pub mod settings_manager;
 pub mod staging_cleanup;
 pub mod staging_safety;
 pub mod work_summary;
+pub mod zcode;
 
 pub use amplifier::AmplifierInfo;
 pub use codex::CodexInfo;
 pub use copilot_launcher::PluginEntry;
 pub use copilot_mcp::McpServerConfig;
 pub use fork_manager::{ForkConfig, ForkDecision, ForkManager};
+pub use hermes::HermesInfo;
 pub use launcher_core::{ClaudeLauncher, LauncherConfig, detect_repo_root};
 pub use memory_config::{MemoryConfig, MemoryPreference};
 pub use session_capture::{CapturedMessage, MessageCapture, MessageRole};
+pub use zcode::ZcodeInfo;
 
 // Re-exports for ported supporting modules
 pub use agent_memory::{AgentMemory, Experience, ExperienceStore, ExperienceType};

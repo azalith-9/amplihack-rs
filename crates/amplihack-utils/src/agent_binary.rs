@@ -33,8 +33,8 @@
 //!
 //! ## Security
 //!
-//! * Allowlist is exactly `{claude, copilot, codex, amplifier}` — case-insensitive
-//!   on input, lowercase on output.
+//! * Allowlist is exactly `{amplifier, claude, codex, copilot, hermes,
+//!   zcode}` — case-insensitive on input, lowercase on output.
 //! * Env-var input is length-capped (32 bytes) and rejects path separators,
 //!   control characters, and any name not in the allowlist.
 //! * `launcher_context.json` is read with a 64 KiB size cap and parsed as a
@@ -57,7 +57,8 @@ use thiserror::Error;
 use tracing::{debug, warn};
 
 /// Allowlist of valid agent binary names. Keep alphabetical and lowercase.
-pub const ALLOWED_BINARIES: &[&str] = &["amplifier", "claude", "codex", "copilot"];
+pub const ALLOWED_BINARIES: &[&str] =
+    &["amplifier", "claude", "codex", "copilot", "hermes", "zcode"];
 
 /// Built-in default when no override is present and no launcher_context exists.
 pub const DEFAULT_BINARY: &str = "copilot";
@@ -877,7 +878,8 @@ fn read_launcher_field(path: &Path, anchor: &Path) -> ContextRead {
     match validate_binary_name(&parsed.launcher) {
         Some(name) => ContextRead::Usable(name),
         None => ContextRead::Unusable(
-            "does not name amplifier, claude, codex or copilot as its launcher".to_string(),
+            "does not name amplifier, claude, codex, copilot, hermes or zcode as its launcher"
+                .to_string(),
         ),
     }
 }
@@ -937,10 +939,13 @@ mod tests {
     }
 
     #[test]
-    fn allowlist_is_exactly_the_four_known_binaries() {
+    fn allowlist_is_exactly_the_six_known_binaries() {
         let mut sorted = ALLOWED_BINARIES.to_vec();
         sorted.sort_unstable();
-        assert_eq!(sorted, vec!["amplifier", "claude", "codex", "copilot"]);
+        assert_eq!(
+            sorted,
+            vec!["amplifier", "claude", "codex", "copilot", "hermes", "zcode"]
+        );
     }
 
     #[test]
@@ -1308,9 +1313,26 @@ mod tests {
         assert_eq!(
             read_raw(&format!(r#"{{"launcher":"vim","timestamp":"{now}"}}"#)),
             ContextRead::Unusable(
-                "does not name amplifier, claude, codex or copilot as its launcher".into()
+                "does not name amplifier, claude, codex, copilot, hermes or zcode as its launcher"
+                    .into()
             )
         );
+    }
+
+    /// Hermes and ZCode are allowlisted launchers: a fresh context naming
+    /// either is usable by the persisted layer.
+    #[test]
+    fn a_fresh_context_naming_hermes_or_zcode_is_usable() {
+        let now = chrono::Utc::now().to_rfc3339();
+        for launcher in ["hermes", "zcode"] {
+            assert_eq!(
+                read_raw(&format!(
+                    r#"{{"launcher":"{launcher}","timestamp":"{now}"}}"#
+                )),
+                ContextRead::Usable(launcher.into()),
+                "{launcher}"
+            );
+        }
     }
 
     /// Sessions end; an old file is expected, not broken, and is not reported.

@@ -11,6 +11,8 @@ fn launcher_kind_for(tool: &str) -> Option<LauncherKind> {
         "copilot" => Some(LauncherKind::Copilot),
         "codex" => Some(LauncherKind::Codex),
         "amplifier" => Some(LauncherKind::Amplifier),
+        "hermes" => Some(LauncherKind::Hermes),
+        "zcode" => Some(LauncherKind::Zcode),
         _ => None,
     }
 }

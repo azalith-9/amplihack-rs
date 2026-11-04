@@ -14,6 +14,8 @@ pub enum AgentBinary {
     Copilot,
     Codex,
     Amplifier,
+    Hermes,
+    Zcode,
 }
 
 impl AgentBinary {
@@ -24,6 +26,8 @@ impl AgentBinary {
             Self::Copilot => "copilot",
             Self::Codex => "codex",
             Self::Amplifier => "amplifier",
+            Self::Hermes => "hermes",
+            Self::Zcode => "zcode",
         }
     }
 }
@@ -156,6 +160,68 @@ pub fn flags_for(binary: AgentBinary) -> FlagSet {
             prompt_tempfile_flag: None,
             agent_binary_env: "AMPLIHACK_AGENT_BINARY",
         },
+        // Booleans below are verified against the live CLIs (hermes
+        // v0.22.5, zcode CLI 0.17.0; 2026-10-26).
+        //
+        // Capability booleans have LITERAL flag meanings (supports_print = a
+        // `--print` flag exists; supports_model = a `--model` flag exists).
+        // They do NOT mean "has some headless mode" or "can select a model".
+        AgentBinary::Hermes => FlagSet {
+            binary: AgentBinary::Hermes,
+            supports_append_prompt: false,
+            supports_add_dir: false,
+            // Verified: `-m/--model <name>`, provider-qualified ids (e.g.
+            // anthropic/claude-sonnet-4.6). Verify vocabulary before
+            // amplihack ever emits it automatically.
+            supports_model: true,
+            // Verified: the CLI has `--yolo` and `-z` one-shot auto-bypasses
+            // approvals — but like codex, amplihack never injects a bypass
+            // flag, so this stays false (only Claude is true).
+            supports_skip_permissions: false,
+            // Verified: `--resume/-r <session>` and `--continue/-c [name]`.
+            supports_resume: true,
+            // No `--print` flag — one-shot is `-z`, not `--print`.
+            supports_print: false,
+            supports_allow_all_tools: false,
+            supports_remote: false,
+            // `hermes -z "<prompt>"` takes the prompt as argv.
+            supports_prompt_argv: true,
+            supports_prompt_tempfile: false,
+            // Stdin (`hermes chat --oneshot -q -`) is documented but is a
+            // DIFFERENT command shape; keep disabled until a dedicated
+            // builder exists (argv-only draft).
+            supports_prompt_stdin: false,
+            supports_prompt_file_reference: false,
+            prompt_tempfile_flag: None,
+            agent_binary_env: "AMPLIHACK_AGENT_BINARY",
+        },
+        AgentBinary::Zcode => FlagSet {
+            binary: AgentBinary::Zcode,
+            supports_append_prompt: false,
+            supports_add_dir: false,
+            // Verified: `--target` sets the session GOAL in headless mode —
+            // it is not a model flag, and zcode has no `--model` flag at all
+            // (model selection lives in the TUI /config, not argv).
+            supports_model: false,
+            // Verified: `--mode` takes build|edit|plan|yolo|guarded and
+            // DEFAULTS TO yolo for `--prompt` runs. amplihack neither
+            // injects nor overrides it; a stricter mode is the user's
+            // explicit extra arg.
+            supports_skip_permissions: false,
+            // Verified: `--resume <sessionId>` and `-c/--continue`.
+            supports_resume: true,
+            // No `--print` flag — headless is `--prompt`, not `--print`.
+            supports_print: false,
+            supports_allow_all_tools: false,
+            supports_remote: false,
+            supports_prompt_argv: true,
+            supports_prompt_tempfile: false,
+            // Stdin delivery: not documented for zcode.
+            supports_prompt_stdin: false,
+            supports_prompt_file_reference: false,
+            prompt_tempfile_flag: None,
+            agent_binary_env: "AMPLIHACK_AGENT_BINARY",
+        },
     }
 }
 
@@ -254,6 +320,12 @@ fn note_for(binary: AgentBinary) -> String {
         AgentBinary::Amplifier => {
             "Amplifier has no prompt-file or stdin contract; large task prompts are passed as a positional file reference".to_string()
         }
+        AgentBinary::Hermes => {
+            "one-shot is `hermes -z` argv; stdin (`hermes chat --oneshot -q -`) is a different command shape and stays disabled".to_string()
+        }
+        AgentBinary::Zcode => {
+            "headless is `zcode --prompt` argv; no stdin contract is documented".to_string()
+        }
     }
 }
 
@@ -283,6 +355,8 @@ pub const ALL_BINARIES: &[AgentBinary] = &[
     AgentBinary::Copilot,
     AgentBinary::Codex,
     AgentBinary::Amplifier,
+    AgentBinary::Hermes,
+    AgentBinary::Zcode,
 ];
 
 // ---------------------------------------------------------------------------
@@ -386,6 +460,26 @@ mod tests {
                     tempfile_flag: None,
                 },
             ),
+            (
+                AgentBinary::Hermes,
+                DeliveryCaps {
+                    supports_argv: true,
+                    supports_tempfile: false,
+                    supports_stdin: false,
+                    supports_file_reference: false,
+                    tempfile_flag: None,
+                },
+            ),
+            (
+                AgentBinary::Zcode,
+                DeliveryCaps {
+                    supports_argv: true,
+                    supports_tempfile: false,
+                    supports_stdin: false,
+                    supports_file_reference: false,
+                    tempfile_flag: None,
+                },
+            ),
         ];
         assert_eq!(expected.len(), ALL_BINARIES.len());
         for (binary, caps) in expected {
@@ -443,6 +537,55 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
+    // Hermes / ZCode — documented-contract rows (see the flags_for arms)
+    // -----------------------------------------------------------------------
+
+    /// Capability booleans carry LITERAL flag meanings: `supports_model` is
+    /// Hermes's documented `-m/--model`, and ZCode stays `false` because its
+    /// `--target` is not `--model`. Neither tool has a bypass or `--print`
+    /// flag, and neither gets one from amplihack.
+    #[test]
+    fn hermes_native_capabilities_are_mode_specific() {
+        let flags = flags_for(AgentBinary::Hermes);
+        assert!(!flags.supports_append_prompt);
+        assert!(!flags.supports_add_dir);
+        assert!(
+            flags.supports_model,
+            "`hermes -m/--model <name>` is documented"
+        );
+        assert!(
+            !flags.supports_skip_permissions,
+            "approvals live in ~/.hermes/config.yaml; no CLI bypass flag"
+        );
+        assert!(flags.supports_resume);
+        assert!(!flags.supports_print, "one-shot is `-z`, not `--print`");
+        assert!(!flags.supports_allow_all_tools);
+        assert!(!flags.supports_remote);
+    }
+
+    #[test]
+    fn zcode_native_capabilities_are_mode_specific() {
+        let flags = flags_for(AgentBinary::Zcode);
+        assert!(!flags.supports_append_prompt);
+        assert!(!flags.supports_add_dir);
+        assert!(
+            !flags.supports_model,
+            "`--target` is documented but is NOT `--model`; semantics unverified"
+        );
+        assert!(
+            !flags.supports_skip_permissions,
+            "`--mode yolo` is never injected by amplihack"
+        );
+        assert!(flags.supports_resume);
+        assert!(
+            !flags.supports_print,
+            "headless is `--prompt`, not `--print`"
+        );
+        assert!(!flags.supports_allow_all_tools);
+        assert!(!flags.supports_remote);
+    }
+
+    // -----------------------------------------------------------------------
     // Agent binary env value
     // -----------------------------------------------------------------------
 
@@ -474,6 +617,16 @@ mod tests {
     #[test]
     fn codex_env_value_is_codex() {
         assert_eq!(AgentBinary::Codex.env_value(), "codex");
+    }
+
+    #[test]
+    fn hermes_env_value_is_hermes() {
+        assert_eq!(AgentBinary::Hermes.env_value(), "hermes");
+    }
+
+    #[test]
+    fn zcode_env_value_is_zcode() {
+        assert_eq!(AgentBinary::Zcode.env_value(), "zcode");
     }
 
     // -----------------------------------------------------------------------
@@ -531,6 +684,8 @@ mod tests {
         assert_eq!(format!("{}", AgentBinary::Claude), "claude");
         assert_eq!(format!("{}", AgentBinary::Copilot), "copilot");
         assert_eq!(format!("{}", AgentBinary::Codex), "codex");
+        assert_eq!(format!("{}", AgentBinary::Hermes), "hermes");
+        assert_eq!(format!("{}", AgentBinary::Zcode), "zcode");
     }
 
     // -----------------------------------------------------------------------
@@ -538,7 +693,7 @@ mod tests {
     // -----------------------------------------------------------------------
 
     #[test]
-    fn all_binaries_contains_three_variants() {
-        assert_eq!(ALL_BINARIES.len(), 4);
+    fn all_binaries_contains_six_variants() {
+        assert_eq!(ALL_BINARIES.len(), 6);
     }
 }
