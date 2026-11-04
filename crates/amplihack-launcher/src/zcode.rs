@@ -92,9 +92,8 @@ pub fn install_zcode() -> Result<()> {
 /// `--prompt` (appended by the shared delivery helper — see
 /// `add_prompt_prefix_args`). The caller sets the working directory
 /// (`--cwd` is only needed when it differs from the process cwd).
-/// `--output-format stream-json` and `--no-color` are added by the
-/// auto-mode executor when it parses events. `--mode yolo` is intentionally
-/// absent — see the module docs.
+/// No output-format or permission-bypass flags are injected. Autonomous
+/// execution is not implemented; see the module docs.
 pub fn build_zcode_command(prompt: &str, project_path: &Path, extra_args: &[String]) -> Command {
     let delivered = build_zcode_command_with_prompt_delivery(prompt, project_path, extra_args)
         .expect("invalid zcode invocation; use the fallible delivery-aware builder");

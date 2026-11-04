@@ -2467,7 +2467,15 @@ mod tests {
         // have, every candidate must be absolute. `execvp` treats a candidate
         // containing no separator as a $PATH lookup rather than a path, which
         // is precisely the case a relative candidate creates.
-        for tool in ["claude", "copilot", "codex", "amplifier", "hermes", "zcode"] {
+        for tool in [
+            "claude",
+            "copilot",
+            "codex",
+            "amplifier",
+            "hermes",
+            "zcode",
+            "agy",
+        ] {
             for (path, _) in candidate_paths(tool, OverrideOrigin::User) {
                 assert!(
                     path.is_absolute(),

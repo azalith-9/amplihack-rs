@@ -16,6 +16,7 @@ pub enum AgentBinary {
     Amplifier,
     Hermes,
     Zcode,
+    Antigravity,
 }
 
 impl AgentBinary {
@@ -28,6 +29,11 @@ impl AgentBinary {
             Self::Amplifier => "amplifier",
             Self::Hermes => "hermes",
             Self::Zcode => "zcode",
+            // The Antigravity agent CLI executable is `agy`; the
+            // `antigravity` name is the desktop IDE, whose every invocation
+            // opens a GUI. The env value doubles as the Command target, so
+            // it must stay the executable name.
+            Self::Antigravity => "agy",
         }
     }
 }
@@ -222,6 +228,35 @@ pub fn flags_for(binary: AgentBinary) -> FlagSet {
             prompt_tempfile_flag: None,
             agent_binary_env: "AMPLIHACK_AGENT_BINARY",
         },
+        // Verified against the live `agy` CLI 1.4.9 (2026-10-28).
+        AgentBinary::Antigravity => FlagSet {
+            binary: AgentBinary::Antigravity,
+            supports_append_prompt: false,
+            // Verified: `--add-dir <dir>`, repeatable.
+            supports_add_dir: true,
+            // Verified: `--model <name>` (vocabulary from `agy models`).
+            supports_model: true,
+            // Verified: `--dangerously-skip-permissions` exists, but
+            // amplihack never injects a bypass flag (only Claude is true).
+            supports_skip_permissions: false,
+            // Verified: `--continue`/`-c` (most recent) and
+            // `--conversation <id>`; there is no `--resume` flag.
+            supports_resume: true,
+            // Verified: `--print` is a real flag (also `-p`/`--prompt`).
+            supports_print: true,
+            supports_allow_all_tools: false,
+            supports_remote: false,
+            // `agy --print "<prompt>"` takes the prompt as the flag value.
+            supports_prompt_argv: true,
+            supports_prompt_tempfile: false,
+            // Stdin is only the stream-json NDJSON protocol (which requires
+            // `--output-format stream-json`) — not a plain prompt contract;
+            // keep disabled until a dedicated builder exists.
+            supports_prompt_stdin: false,
+            supports_prompt_file_reference: false,
+            prompt_tempfile_flag: None,
+            agent_binary_env: "AMPLIHACK_AGENT_BINARY",
+        },
     }
 }
 
@@ -326,6 +361,11 @@ fn note_for(binary: AgentBinary) -> String {
         AgentBinary::Zcode => {
             "headless is `zcode --prompt` argv; no stdin contract is documented".to_string()
         }
+        AgentBinary::Antigravity => {
+            "one-shot is `agy --print` argv; stdin is only the stream-json protocol and stays \
+             disabled"
+                .to_string()
+        }
     }
 }
 
@@ -357,6 +397,7 @@ pub const ALL_BINARIES: &[AgentBinary] = &[
     AgentBinary::Amplifier,
     AgentBinary::Hermes,
     AgentBinary::Zcode,
+    AgentBinary::Antigravity,
 ];
 
 // ---------------------------------------------------------------------------
@@ -480,6 +521,16 @@ mod tests {
                     tempfile_flag: None,
                 },
             ),
+            (
+                AgentBinary::Antigravity,
+                DeliveryCaps {
+                    supports_argv: true,
+                    supports_tempfile: false,
+                    supports_stdin: false,
+                    supports_file_reference: false,
+                    tempfile_flag: None,
+                },
+            ),
         ];
         assert_eq!(expected.len(), ALL_BINARIES.len());
         for (binary, caps) in expected {
@@ -585,6 +636,31 @@ mod tests {
         assert!(!flags.supports_remote);
     }
 
+    #[test]
+    fn antigravity_native_capabilities_are_mode_specific() {
+        let flags = flags_for(AgentBinary::Antigravity);
+        assert!(!flags.supports_append_prompt);
+        assert!(
+            flags.supports_add_dir,
+            "`agy --add-dir <dir>` is documented and repeatable"
+        );
+        assert!(flags.supports_model, "`agy --model <name>` is documented");
+        assert!(
+            !flags.supports_skip_permissions,
+            "`--dangerously-skip-permissions` exists but is never injected by amplihack"
+        );
+        assert!(
+            flags.supports_resume,
+            "`--continue` and `--conversation <id>` are documented"
+        );
+        assert!(
+            flags.supports_print,
+            "`agy --print` is a real flag (also `-p`/`--prompt`)"
+        );
+        assert!(!flags.supports_allow_all_tools);
+        assert!(!flags.supports_remote);
+    }
+
     // -----------------------------------------------------------------------
     // Agent binary env value
     // -----------------------------------------------------------------------
@@ -627,6 +703,13 @@ mod tests {
     #[test]
     fn zcode_env_value_is_zcode() {
         assert_eq!(AgentBinary::Zcode.env_value(), "zcode");
+    }
+
+    #[test]
+    fn antigravity_env_value_is_the_agy_executable() {
+        // The env value doubles as the `Command::new` target; `antigravity`
+        // is the desktop IDE, which every invocation opens as a GUI.
+        assert_eq!(AgentBinary::Antigravity.env_value(), "agy");
     }
 
     // -----------------------------------------------------------------------
@@ -686,6 +769,7 @@ mod tests {
         assert_eq!(format!("{}", AgentBinary::Codex), "codex");
         assert_eq!(format!("{}", AgentBinary::Hermes), "hermes");
         assert_eq!(format!("{}", AgentBinary::Zcode), "zcode");
+        assert_eq!(format!("{}", AgentBinary::Antigravity), "agy");
     }
 
     // -----------------------------------------------------------------------
@@ -693,7 +777,7 @@ mod tests {
     // -----------------------------------------------------------------------
 
     #[test]
-    fn all_binaries_contains_six_variants() {
-        assert_eq!(ALL_BINARIES.len(), 6);
+    fn all_binaries_contains_seven_variants() {
+        assert_eq!(ALL_BINARIES.len(), 7);
     }
 }

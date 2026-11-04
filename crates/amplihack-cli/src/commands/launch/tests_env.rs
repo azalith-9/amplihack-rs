@@ -777,6 +777,7 @@ fn persist_launcher_context_records_the_launcher_that_ran() {
         ("amplifier", LauncherKind::Amplifier),
         ("hermes", LauncherKind::Hermes),
         ("zcode", LauncherKind::Zcode),
+        ("agy", LauncherKind::Antigravity),
     ] {
         let dir = tempfile::tempdir().unwrap();
         persist_hermetic(tool, Some(dir.path()), &[]).unwrap();

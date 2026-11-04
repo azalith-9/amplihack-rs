@@ -6,6 +6,7 @@
 
 pub mod agent_memory;
 pub mod amplifier;
+pub mod antigravity;
 pub mod append_handler;
 pub mod auto_stager;
 pub mod codex;
@@ -34,6 +35,7 @@ pub mod work_summary;
 pub mod zcode;
 
 pub use amplifier::AmplifierInfo;
+pub use antigravity::AntigravityInfo;
 pub use codex::CodexInfo;
 pub use copilot_launcher::PluginEntry;
 pub use copilot_mcp::McpServerConfig;

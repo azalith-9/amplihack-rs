@@ -277,6 +277,7 @@ fn prompt_delivery_report_matches_doctor_order_and_effective_modes() {
             AgentBinary::Amplifier,
             AgentBinary::Hermes,
             AgentBinary::Zcode,
+            AgentBinary::Antigravity,
         ],
         "doctor and launcher reports must use a stable binary order"
     );
@@ -292,6 +293,7 @@ fn prompt_delivery_report_matches_doctor_order_and_effective_modes() {
             DeliveryMode::FileReference,
             DeliveryMode::Argv,
             DeliveryMode::FileReference,
+            DeliveryMode::Argv,
             DeliveryMode::Argv,
             DeliveryMode::Argv,
         ],

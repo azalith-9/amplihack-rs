@@ -483,6 +483,52 @@ pub fn dispatch(command: Commands) -> Result<()> {
                 None,
             )
         }
+        Commands::Antigravity {
+            no_reflection,
+            subprocess_safe,
+            docker,
+            append,
+            auto,
+            max_turns: _, // --auto is rejected below; auto-mode knobs stay unbound
+            ui: _,
+            prompt_file: _,
+            args,
+        } => {
+            if let Some(instruction) = append {
+                reject_gateway_append()?;
+                return append::run_append(&instruction);
+            }
+            if auto {
+                // --auto is NOT implemented for antigravity in this draft:
+                // reject explicitly rather than falling through to an
+                // unimplemented executor path. Re-enable only once the
+                // headless `agy --print` executor exists.
+                anyhow::bail!("--auto is not implemented for antigravity in this draft");
+            }
+            // tool is the executable name (`agy` — resolution and the
+            // persisted launcher context key on it; `antigravity` is the
+            // desktop IDE binary and must never be probed); the
+            // launcher_command keeps the user-facing subcommand for the
+            // Docker re-entry.
+            launch::run_launch(
+                "agy",
+                "antigravity",
+                docker,
+                false,
+                false,
+                false,
+                false,
+                no_reflection,
+                subprocess_safe,
+                None,
+                args,
+                // Issue #1276: not the rustyclawd path — nothing has set an
+                // override on amplihack's behalf, so any override in the
+                // environment is the user's instruction.
+                OverrideOrigin::User,
+                None,
+            )
+        }
         Commands::Plugin { command } => dispatch_plugin(command),
         Commands::Memory { command } => dispatch_memory(command),
         Commands::Remote { command } => dispatch_remote(command),

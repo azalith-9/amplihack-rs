@@ -44,10 +44,13 @@ pub(crate) fn detect_launcher_for_dirs(dirs: &ProjectDirs) -> LauncherType {
             LauncherKind::Amplifier => LauncherType::Amplifier,
             LauncherKind::Claude => LauncherType::ClaudeCode,
             LauncherKind::Codex => LauncherType::Codex,
-            // Hermes and ZCode launches persist a context, but neither has a
-            // hook integration yet: treat them as unknown rather than
-            // attributing another vendor's behavior to them.
-            LauncherKind::Hermes | LauncherKind::Zcode => LauncherType::Unknown,
+            // Hermes, ZCode and Antigravity (`agy`) launches persist a
+            // context, but none has a hook integration yet: treat them as
+            // unknown rather than attributing another vendor's behavior to
+            // them.
+            LauncherKind::Hermes | LauncherKind::Zcode | LauncherKind::Antigravity => {
+                LauncherType::Unknown
+            }
             LauncherKind::Unknown => LauncherType::Unknown,
         };
     }

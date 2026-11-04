@@ -2,7 +2,7 @@
 //!
 //! These tests define the contract for the unified agent-binary resolver:
 //! 1. Precedence: `AMPLIHACK_AGENT_BINARY` env > `launcher_context.json` > "copilot" default.
-//! 2. Strict allowlist: {amplifier, claude, codex, copilot, hermes, zcode}.
+//! 2. Strict allowlist: {agy, amplifier, claude, codex, copilot, hermes, zcode}.
 //! 3. Walk-up boundary, file size cap, validation hardening.
 //!
 //! Run with: `TMPDIR=/tmp cargo test -p amplihack-utils --test agent_binary_resolver_test`
@@ -152,13 +152,21 @@ fn launcher_context_used_when_env_unset() {
 }
 
 #[test]
-fn allowlist_contains_exactly_six_binaries() {
+fn allowlist_contains_exactly_seven_binaries() {
     let _guard = env_lock().lock().unwrap_or_else(|p| p.into_inner());
     let mut sorted: Vec<&str> = ALLOWED_BINARIES.to_vec();
     sorted.sort_unstable();
     assert_eq!(
         sorted,
-        vec!["amplifier", "claude", "codex", "copilot", "hermes", "zcode"]
+        vec![
+            "agy",
+            "amplifier",
+            "claude",
+            "codex",
+            "copilot",
+            "hermes",
+            "zcode"
+        ]
     );
 }
 

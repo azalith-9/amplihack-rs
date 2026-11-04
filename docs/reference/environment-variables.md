@@ -69,7 +69,7 @@ These variables are injected into every child process launched by `amplihack`. T
 ### AMPLIHACK_AGENT_BINARY
 
 **Type:** string
-**Allowed values:** `claude` | `copilot` | `codex` | `amplifier` (case-insensitive, exact match after trim)
+**Allowed values:** `agy` | `amplifier` | `claude` | `codex` | `copilot` | `hermes` | `zcode` (case-insensitive, exact match after trim; `agy` is the Google Antigravity agent CLI)
 **Default:** `copilot`
 **Set by:** `EnvBuilder::with_launched_agent_binary()` (a launcher, tagged `session:<cli>`) and `EnvBuilder::with_resolved_agent_binary()` (`recipe run`, tagged by where its answer came from); `EnvBuilder` has no method that exports a bare name
 **Read by:** `amplihack_utils::agent_binary::resolve()` (precedence step 1)
@@ -131,13 +131,13 @@ AMPLIHACK_AGENT_BINARY=claude amplihack recipe run smart-orchestrator -c task_de
 # session marker and no launcher context, that is the default, and the
 # notice on stderr says why:
 AMPLIHACK_AGENT_BINARY="../bin/evil" amplihack agent-binary
-# amplihack: resolved the agent binary to 'copilot' (AMPLIHACK_AGENT_BINARY is set but is not one of amplifier, claude, codex, copilot, hermes or zcode, and no agent session marker was found). Set AMPLIHACK_AGENT_BINARY to one of amplifier, claude, codex, copilot, hermes or zcode to choose an agent CLI.
+# amplihack: resolved the agent binary to 'copilot' (AMPLIHACK_AGENT_BINARY is set but is not one of agy, amplifier, claude, codex, copilot, hermes or zcode, and no agent session marker was found). Set AMPLIHACK_AGENT_BINARY to one of agy, amplifier, claude, codex, copilot, hermes or zcode to choose an agent CLI.
 # copilot (default)
 
 # The same value inside a Copilot CLI session: its session marker answers,
 # and the notice names the marker:
 COPILOT_CLI=1 AMPLIHACK_AGENT_BINARY="../bin/evil" amplihack agent-binary
-# amplihack: resolved the agent binary to 'copilot' (AMPLIHACK_AGENT_BINARY is set but is not one of amplifier, claude, codex, copilot, hermes or zcode; COPILOT_CLI, the copilot session marker in this environment, answered). Set AMPLIHACK_AGENT_BINARY to one of amplifier, claude, codex, copilot, hermes or zcode to choose an agent CLI.
+# amplihack: resolved the agent binary to 'copilot' (AMPLIHACK_AGENT_BINARY is set but is not one of agy, amplifier, claude, codex, copilot, hermes or zcode; COPILOT_CLI, the copilot session marker in this environment, answered). Set AMPLIHACK_AGENT_BINARY to one of agy, amplifier, claude, codex, copilot, hermes or zcode to choose an agent CLI.
 # copilot (session_marker)
 ```
 

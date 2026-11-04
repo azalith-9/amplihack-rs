@@ -248,7 +248,7 @@ fn a_rejected_value_is_reported_as_rejected() {
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(
         stderr.contains(
-            "is set but is not one of amplifier, claude, codex, copilot, hermes or zcode"
+            "is set but is not one of agy, amplifier, claude, codex, copilot, hermes or zcode"
         ) && !stderr.contains("no AMPLIHACK_AGENT_BINARY")
             && !stderr.contains("claude-code"),
         "{stderr}"
@@ -272,10 +272,10 @@ fn a_rejected_value_a_session_marker_answered_for_is_named_once() {
     assert_eq!(handed(&probe), ("copilot", "session:copilot"));
     let stderr = String::from_utf8_lossy(&output.stderr);
     let line = "amplihack: agent steps will run under 'copilot' (AMPLIHACK_AGENT_BINARY is set \
-                but is not one of amplifier, claude, codex, copilot, hermes or zcode; \
+                but is not one of agy, amplifier, claude, codex, copilot, hermes or zcode; \
                 COPILOT_CLI, the copilot \
                 session marker in this environment, answered). Set AMPLIHACK_AGENT_BINARY to \
-                one of amplifier, claude, codex, copilot, hermes or zcode to choose an agent CLI.";
+                one of agy, amplifier, claude, codex, copilot, hermes or zcode to choose an agent CLI.";
     assert_eq!(stderr.matches(line).count(), 1, "{stderr}");
     assert!(!stderr.contains("claude-code"), "{stderr}");
 }
@@ -326,7 +326,7 @@ fn a_rejected_value_is_never_logged_at_any_filter() {
     assert!(
         stderr.contains(
             "amplihack: resolved the agent binary to 'copilot' (AMPLIHACK_AGENT_BINARY is set \
-             but is not one of amplifier, claude, codex, copilot, hermes or zcode; \
+             but is not one of agy, amplifier, claude, codex, copilot, hermes or zcode; \
              COPILOT_CLI, the copilot \
              session marker in this environment, answered)."
         ),
@@ -341,7 +341,7 @@ fn a_rejected_value_is_never_logged_at_any_filter() {
     assert!(
         stderr.contains("assuming the built-in default")
             && stderr.contains(
-                "is set but is not one of amplifier, claude, codex, copilot, hermes or zcode"
+                "is set but is not one of agy, amplifier, claude, codex, copilot, hermes or zcode"
             ),
         "{stderr}"
     );
@@ -366,7 +366,8 @@ fn a_rejected_value_is_never_logged_at_any_filter() {
     assert_eq!(stdout.trim(), "copilot (default)", "stderr: {stderr}");
     assert!(
         stderr.contains("ignoring an unusable launcher_context.json")
-            && stderr.contains("does not name amplifier, claude, codex, copilot, hermes or zcode"),
+            && stderr
+                .contains("does not name agy, amplifier, claude, codex, copilot, hermes or zcode"),
         "{stderr}"
     );
     assert!(!stderr.contains(REJECTED), "{stderr}");

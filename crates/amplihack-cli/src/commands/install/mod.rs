@@ -8,6 +8,7 @@ mod claude_publication;
 mod clone;
 mod codex_plugin;
 mod command_staging;
+mod connector_paths;
 mod copilot_plugin;
 mod directories;
 pub(crate) mod filesystem;

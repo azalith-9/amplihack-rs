@@ -99,6 +99,9 @@ and checked by the test `prompt_delivery_caps_match_verified_cli_contracts`.
 | Codex | yes | no | see note | no | `stdin` (`codex exec`) |
 | GitHub Copilot CLI | yes | no | no | yes | `file-reference` |
 | Microsoft Amplifier | yes | no | no | yes | `file-reference` |
+| Hermes Agent | yes | no | no | no | `argv` (`hermes -z`) |
+| ZCode | yes | no | no | no | `argv` (`zcode --prompt`) |
+| Antigravity CLI | yes | no | no | no | `argv` (`agy --print`) |
 
 Codex keeps its binary-specific contract in
 `crates/amplihack-launcher/src/prompt_delivery.rs`: `codex exec` receives the

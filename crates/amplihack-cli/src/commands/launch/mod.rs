@@ -860,6 +860,7 @@ fn agent_binary_for_tool(tool: &str) -> Option<AgentBinary> {
         "amplifier" => Some(AgentBinary::Amplifier),
         "hermes" => Some(AgentBinary::Hermes),
         "zcode" => Some(AgentBinary::Zcode),
+        "agy" => Some(AgentBinary::Antigravity),
         _ => None,
     }
 }

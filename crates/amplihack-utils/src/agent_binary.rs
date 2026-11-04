@@ -33,7 +33,7 @@
 //!
 //! ## Security
 //!
-//! * Allowlist is exactly `{amplifier, claude, codex, copilot, hermes,
+//! * Allowlist is exactly `{agy, amplifier, claude, codex, copilot, hermes,
 //!   zcode}` — case-insensitive on input, lowercase on output.
 //! * Env-var input is length-capped (32 bytes) and rejects path separators,
 //!   control characters, and any name not in the allowlist.
@@ -57,8 +57,20 @@ use thiserror::Error;
 use tracing::{debug, warn};
 
 /// Allowlist of valid agent binary names. Keep alphabetical and lowercase.
-pub const ALLOWED_BINARIES: &[&str] =
-    &["amplifier", "claude", "codex", "copilot", "hermes", "zcode"];
+///
+/// `agy` is the Antigravity agent CLI's executable name, and the allowlist
+/// value doubles as the `Command` target — the `antigravity` name is the
+/// desktop IDE, whose every invocation (including `--version`) opens a GUI
+/// and never returns, so it must never appear here.
+pub const ALLOWED_BINARIES: &[&str] = &[
+    "agy",
+    "amplifier",
+    "claude",
+    "codex",
+    "copilot",
+    "hermes",
+    "zcode",
+];
 
 /// Built-in default when no override is present and no launcher_context exists.
 pub const DEFAULT_BINARY: &str = "copilot";
@@ -878,7 +890,7 @@ fn read_launcher_field(path: &Path, anchor: &Path) -> ContextRead {
     match validate_binary_name(&parsed.launcher) {
         Some(name) => ContextRead::Usable(name),
         None => ContextRead::Unusable(
-            "does not name amplifier, claude, codex, copilot, hermes or zcode as its launcher"
+            "does not name agy, amplifier, claude, codex, copilot, hermes or zcode as its launcher"
                 .to_string(),
         ),
     }
@@ -939,12 +951,20 @@ mod tests {
     }
 
     #[test]
-    fn allowlist_is_exactly_the_six_known_binaries() {
+    fn allowlist_is_exactly_the_seven_known_binaries() {
         let mut sorted = ALLOWED_BINARIES.to_vec();
         sorted.sort_unstable();
         assert_eq!(
             sorted,
-            vec!["amplifier", "claude", "codex", "copilot", "hermes", "zcode"]
+            vec![
+                "agy",
+                "amplifier",
+                "claude",
+                "codex",
+                "copilot",
+                "hermes",
+                "zcode"
+            ]
         );
     }
 
@@ -1313,18 +1333,20 @@ mod tests {
         assert_eq!(
             read_raw(&format!(r#"{{"launcher":"vim","timestamp":"{now}"}}"#)),
             ContextRead::Unusable(
-                "does not name amplifier, claude, codex, copilot, hermes or zcode as its launcher"
+                "does not name agy, amplifier, claude, codex, copilot, hermes or zcode as its \
+                 launcher"
                     .into()
             )
         );
     }
 
-    /// Hermes and ZCode are allowlisted launchers: a fresh context naming
-    /// either is usable by the persisted layer.
+    /// Hermes, ZCode and the Antigravity CLI (`agy`) are allowlisted
+    /// launchers: a fresh context naming any of them is usable by the
+    /// persisted layer.
     #[test]
-    fn a_fresh_context_naming_hermes_or_zcode_is_usable() {
+    fn a_fresh_context_naming_hermes_zcode_or_agy_is_usable() {
         let now = chrono::Utc::now().to_rfc3339();
-        for launcher in ["hermes", "zcode"] {
+        for launcher in ["hermes", "zcode", "agy"] {
             assert_eq!(
                 read_raw(&format!(
                     r#"{{"launcher":"{launcher}","timestamp":"{now}"}}"#

@@ -13,6 +13,7 @@ fn launcher_kind_for(tool: &str) -> Option<LauncherKind> {
         "amplifier" => Some(LauncherKind::Amplifier),
         "hermes" => Some(LauncherKind::Hermes),
         "zcode" => Some(LauncherKind::Zcode),
+        "agy" => Some(LauncherKind::Antigravity),
         _ => None,
     }
 }

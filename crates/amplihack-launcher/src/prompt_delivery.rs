@@ -322,6 +322,15 @@ fn add_prompt_prefix_args(command: &mut Command, binary: AgentBinary, extra_args
             command.args(extra_args);
             command.arg("--prompt");
         }
+        AgentBinary::Antigravity => {
+            // Verified (agy CLI 1.4.9): one-shot headless is
+            // `agy --print "<prompt>"` (also `-p`/`--prompt`); the flag
+            // REQUIRES a value, appended right after `--print` by the
+            // delivery helper. Stdin is only the stream-json NDJSON
+            // protocol, which stays unimplemented.
+            command.args(extra_args);
+            command.arg("--print");
+        }
     }
 }
 
@@ -574,6 +583,31 @@ mod hermes_zcode_argv_tests {
                 "{binary}: no bypass flag may be injected: {args:?}"
             );
         }
+    }
+
+    /// Antigravity (agy 1.4.9): argv is extra args, `--print`, then the
+    /// prompt as one element; no bypass flag is injected even though the CLI
+    /// has `--dangerously-skip-permissions`.
+    #[test]
+    fn antigravity_argv_is_extra_args_then_print_then_prompt() {
+        let prompt = "fix the failing tests in the launcher crate";
+        let delivered = build_argv(
+            AgentBinary::Antigravity,
+            &["--model".to_string(), "gemini-3.8-flash-high".to_string()],
+            prompt,
+        );
+        assert_eq!(
+            argv(&delivered),
+            vec!["agy", "--model", "gemini-3.8-flash-high", "--print", prompt],
+        );
+        assert_eq!(delivered.selected_mode, DeliveryMode::Argv);
+        assert!(delivered.stdin_payload.is_none(), "argv-only draft");
+        assert!(
+            !argv(&delivered)
+                .iter()
+                .any(|a| a == "--dangerously-skip-permissions"),
+            "no bypass flag may be injected"
+        );
     }
 
     /// amplihack never emits `-p` for Hermes: the top-level CLI has no `-p`

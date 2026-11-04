@@ -20,6 +20,10 @@ pub enum LauncherKind {
     Amplifier,
     Hermes,
     Zcode,
+    /// Google Antigravity agent CLI. `agy` is the executable (and this
+    /// string is validated against the agent-binary allowlist); the
+    /// `antigravity` name is the desktop IDE.
+    Antigravity,
     Unknown,
 }
 
@@ -32,6 +36,7 @@ impl LauncherKind {
             Self::Amplifier => "amplifier",
             Self::Hermes => "hermes",
             Self::Zcode => "zcode",
+            Self::Antigravity => "agy",
             Self::Unknown => "unknown",
         }
     }

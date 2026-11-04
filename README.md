@@ -65,6 +65,14 @@ agent:
 **The Benefit**: Systematic workflows and quality gates produce consistent,
 high-quality code.
 
+## Experimental agent connectors
+
+Hermes, ZCode, and Google Antigravity have launch-only connectors. Start them
+with `amplihack hermes`, `amplihack zcode`, or `amplihack antigravity` after
+installing the corresponding CLI yourself. Antigravity uses the `agy` agent
+executable. Autonomous mode and hook integration are not implemented for these
+connectors. See [connector support and limitations](docs/reference/experimental-connectors.md).
+
 ## Quick Start
 
 ### Prerequisites
